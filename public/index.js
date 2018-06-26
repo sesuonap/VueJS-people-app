@@ -4,12 +4,15 @@ var HomePage = {
   template: "#home-page",
   data: function() {
     return {
-      message: "Welcome to Vue.js!",
+      message: "People: ",
       people: [],
           newPerson: {
                       name:"",
                       bio: ""
-                      }
+          },
+      nameFilter: "",
+      bioFilter: "",
+      errors: []
 
           
     };
@@ -23,13 +26,26 @@ var HomePage = {
   },
   methods: {
     addPerson: function() {
+      // if (this.newPerson.name && this.newPerson.bio) {
+
       var newPersonInfo = {
                             name: this.newPerson.name,
                             bio: this.newPerson.bio,
                             bioVisible: true
                           };
-      this.people.push(newPersonInfo);
-                          },
+
+      axios
+      .post('/api/people', newPersonInfo)
+      .then(function(response) {
+        this.people.push(response.data);
+
+      }.bind(this))
+      .catch(function(error) {
+        this.errors = error.response.data.errors;
+      }.bind(this));
+      
+      // }
+    },
 
     deletePerson: function(inputPerson) {
       var index = this.people.indexOf(inputPerson);
@@ -38,13 +54,25 @@ var HomePage = {
 
     toggleBio: function(inputPerson) {
       inputPerson.bioVisible = !inputPerson.bioVisible;
+    },
+
+    isValidPerson: function(inputPerson) {
+       var validName = inputPerson.name.toLowerCase().includes(this.nameFilter.toLowerCase());
+       var validBio = inputPerson.bio.toLowerCase().includes(this.bioFilter.toLowerCase());
+
+       return validName && validBio;
     }
 
-
-    
-  
   },
-  computed: {}
+  computed: {
+    sortedPeople: function() {
+      return this.people.sort(function(person1, person2) {
+        var lowerName1 = person1.name.toLowerCase();
+        var lowerName2 = person2.name.toLowerCase();
+        return lowerName1.localeCompare(lowerName2);
+      });
+    }
+  }
 };
 
 var router = new VueRouter({
